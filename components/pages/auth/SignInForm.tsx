@@ -73,7 +73,11 @@ export default function SignInForm() {
               <p className="text-red-500 text-sm">{errors.password.message}</p>
             )}
           </div>
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Button
+            type="submit"
+            className="w-full text-white"
+            disabled={isLoading}
+          >
             {isLoading ? 'Loading...' : 'Sign In'}
           </Button>
         </form>
@@ -81,21 +85,21 @@ export default function SignInForm() {
           <Button
             onClick={() => signIn('discord', { callbackUrl: '/dashboard' })}
             variant="outline"
-            className="flex-1 mr-2"
+            className="flex-1 mr-2 text-white"
           >
             <FaDiscord className="mr-2 h-4 w-4" /> Discord
           </Button>
           <Button
             onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
             variant="outline"
-            className="flex-1 mx-2"
+            className="flex-1 mx-2 text-white"
           >
             <FaGoogle className="mr-2 h-4 w-4" /> Google
           </Button>
           <Button
             onClick={() => signIn('github', { callbackUrl: '/dashboard' })}
             variant="outline"
-            className="flex-1 ml-2"
+            className="flex-1 ml-2 text-white"
           >
             <FaGithub className="mr-2 h-4 w-4" /> GitHub
           </Button>

@@ -110,7 +110,11 @@ export default function SignUpForm() {
               </p>
             )}
           </div>
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Button
+            type="submit"
+            className="w-full text-white"
+            disabled={isLoading}
+          >
             {isLoading ? 'Loading...' : 'Sign Up'}
           </Button>
         </form>

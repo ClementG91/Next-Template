@@ -148,13 +148,17 @@ function VerifyEmailFormContent() {
             <p className="text-red-500 text-sm">{errors.code.message}</p>
           )}
         </div>
-        <Button type="submit" className="w-full" disabled={isLoading}>
+        <Button
+          type="submit"
+          className="w-full text-white"
+          disabled={isLoading}
+        >
           {isLoading ? 'Vérification en cours...' : "Vérifier l'e-mail"}
         </Button>
       </form>
       <Button
         onClick={resendVerificationCode}
-        className="w-full"
+        className="w-full text-white"
         variant="outline"
         disabled={isResending}
       >
