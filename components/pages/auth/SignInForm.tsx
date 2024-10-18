@@ -85,21 +85,21 @@ export default function SignInForm() {
           <Button
             onClick={() => signIn('discord', { callbackUrl: '/dashboard' })}
             variant="outline"
-            className="flex-1 mr-2 text-white"
+            className="flex-1 mr-2"
           >
             <FaDiscord className="mr-2 h-4 w-4" /> Discord
           </Button>
           <Button
             onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
             variant="outline"
-            className="flex-1 mx-2 text-white"
+            className="flex-1 mx-2"
           >
             <FaGoogle className="mr-2 h-4 w-4" /> Google
           </Button>
           <Button
             onClick={() => signIn('github', { callbackUrl: '/dashboard' })}
             variant="outline"
-            className="flex-1 ml-2 text-white"
+            className="flex-1 ml-2"
           >
             <FaGithub className="mr-2 h-4 w-4" /> GitHub
           </Button>
