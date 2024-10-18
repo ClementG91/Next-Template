@@ -45,7 +45,7 @@ This project is a Next.js application template with robust authentication, using
 
    ```
    git clone https://github.com/ClementG91/Next-Template.git
-   cd NextAuth-ShadcnUI-Prisma-PostgreSQL-Template
+   cd Next-Template
    ```
 
 2. Install dependencies:
