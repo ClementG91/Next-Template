@@ -5,8 +5,8 @@ import { Rocket, Settings, Server, Database } from 'lucide-react';
 
 export const DeploymentGuide: FC = () => {
   return (
-    <div className="container min-h-[80vh] mx-auto px-4 py-12">
-      <h1 className="text-4xl font-bold mb-8 text-center">Deployment Guide</h1>
+    <div className="space-y-6">
+      <h1 className="text-3xl font-bold">Deployment Guide</h1>
 
       <Tabs defaultValue="preparation" className="w-full mb-12">
         <TabsList className="grid w-full grid-cols-4">

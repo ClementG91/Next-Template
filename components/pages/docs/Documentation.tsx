@@ -13,8 +13,8 @@ import { CommandBlock } from '@/components/pages/docs/CommandBlock';
 
 export const Documentation: FC = () => {
   return (
-    <div className="container mx-auto px-4 py-12">
-      <h1 className="text-4xl font-bold mb-8">Documentation</h1>
+    <div className="space-y-6">
+      <h1 className="text-4xl font-bold">Documentation</h1>
 
       <section id="prerequisites" className="mb-12">
         <h2 className="text-3xl font-semibold mb-4 flex items-center">
@@ -286,8 +286,8 @@ export const Documentation: FC = () => {
           <li>
             Authentication providers:
             <p className="mt-2">
-              Modify <code>lib/auth.ts</code> to add or remove authentication
-              providers.
+              Modify <code>lib/authOptions.ts</code> to add or remove
+              authentication providers.
             </p>
           </li>
           <li>

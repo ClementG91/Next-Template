@@ -7,10 +7,8 @@ import { ArrowRight, Lock, Mail, Settings, Users } from 'lucide-react';
 
 export const AuthenticationGuide: FC = () => {
   return (
-    <div className="container min-h-[80vh] mx-auto px-4 py-12">
-      <h1 className="text-4xl font-bold mb-8 text-center">
-        Authentication Guide
-      </h1>
+    <div className="space-y-6">
+      <h1 className="text-3xl font-bold">Authentication Guide</h1>
 
       <Tabs defaultValue="overview" className="w-full mb-12">
         <TabsList className="grid w-full grid-cols-4">
@@ -51,7 +49,7 @@ export const AuthenticationGuide: FC = () => {
               <p className="mb-4">
                 The main configuration is located in{' '}
                 <code className="bg-muted px-1 py-0.5 rounded">
-                  lib/auth.ts
+                  lib/authOptions.ts
                 </code>
                 . Follow these steps to customize:
               </p>
@@ -73,14 +71,16 @@ export const AuthenticationGuide: FC = () => {
             <CardContent>
               <p className="mb-4">Currently supported providers:</p>
               <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {['Google', 'Discord', 'Email/Password'].map((provider) => (
-                  <li
-                    key={provider}
-                    className="flex items-center bg-muted p-3 rounded-lg"
-                  >
-                    <ArrowRight className="mr-2 h-4 w-4" /> {provider}
-                  </li>
-                ))}
+                {['Google', 'Discord', 'Email/Password', 'GitHub'].map(
+                  (provider) => (
+                    <li
+                      key={provider}
+                      className="flex items-center bg-muted p-3 rounded-lg"
+                    >
+                      <ArrowRight className="mr-2 h-4 w-4" /> {provider}
+                    </li>
+                  )
+                )}
               </ul>
             </CardContent>
           </Card>

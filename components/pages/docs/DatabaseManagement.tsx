@@ -6,10 +6,8 @@ import { Database, Code, GitBranch, Zap } from 'lucide-react';
 
 export const DatabaseManagement: FC = () => {
   return (
-    <div className="container min-h-[80vh] mx-auto px-4 py-12">
-      <h1 className="text-4xl font-bold mb-8 text-center">
-        Database Management with Prisma
-      </h1>
+    <div className="space-y-6">
+      <h1 className="text-3xl font-bold">Database Management with Prisma</h1>
 
       <Tabs defaultValue="overview" className="w-full mb-12">
         <TabsList className="grid w-full grid-cols-4">

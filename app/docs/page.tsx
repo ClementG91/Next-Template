@@ -1,5 +1,8 @@
+import { FC } from 'react';
 import { Documentation } from '@/components/pages/docs/Documentation';
 
-export default function DocsPage() {
+const DocsOverview: FC = () => {
   return <Documentation />;
-}
+};
+
+export default DocsOverview;
