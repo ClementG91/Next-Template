@@ -21,19 +21,19 @@ export async function GET() {
         UNION ALL
         SELECT (date + INTERVAL '1 month')::date
         FROM dates
-        WHERE date < DATE_TRUNC('month', CURRENT_DATE)
+        WHERE date <= DATE_TRUNC('month', CURRENT_DATE)
       )
       SELECT dates.date, COALESCE(COUNT(u."id"), 0)::integer AS count
       FROM dates
       LEFT JOIN "User" u ON DATE_TRUNC('month', u."createdAt") = dates.date
       GROUP BY dates.date
       ORDER BY dates.date ASC
-      LIMIT 12
+      LIMIT 13
     `;
 
     const formattedUserGrowth = userGrowth.map(({ date, count }) => ({
       date: date.toISOString(),
-      count: count,
+      count,
     }));
 
     return NextResponse.json(formattedUserGrowth, {
