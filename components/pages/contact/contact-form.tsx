@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+import { contactFormSchema, ContactFormValues } from '@/lib/schemas/contact';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -17,21 +17,6 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
-
-const contactFormSchema = z.object({
-  name: z
-    .string()
-    .min(2, { message: 'Name must contain at least 2 characters.' }),
-  email: z.string().email({ message: 'Please enter a valid email address.' }),
-  subject: z
-    .string()
-    .min(5, { message: 'Subject must contain at least 5 characters.' }),
-  message: z
-    .string()
-    .min(10, { message: 'Message must contain at least 10 characters.' }),
-});
-
-type ContactFormValues = z.infer<typeof contactFormSchema>;
 
 interface ContactFormProps {
   selectedTopic: string;

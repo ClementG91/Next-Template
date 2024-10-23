@@ -1,11 +1,26 @@
 import { NextResponse } from 'next/server';
 import { transporter } from '@/lib/nodemailer';
+import { contactFormSchema } from '@/lib/schemas/contact';
 
 const cooldowns = new Map<string, number>();
 
 export async function POST(request: Request) {
   try {
-    const { name, email, subject, message } = await request.json();
+    const body = await request.json();
+
+    // Validate the request body
+    const result = contactFormSchema.safeParse(body);
+    if (!result.success) {
+      return NextResponse.json(
+        {
+          message: 'Invalid input',
+          errors: result.error.flatten().fieldErrors,
+        },
+        { status: 400 }
+      );
+    }
+
+    const { name, email, subject, message } = result.data;
 
     // Cooldown check
     const ip = request.headers.get('x-forwarded-for') || 'unknown';
@@ -25,7 +40,7 @@ export async function POST(request: Request) {
     // Send email
     await transporter.sendMail({
       from: process.env.EMAIL_FROM,
-      to: process.env.EMAIL_TO, // The email address where you want to receive contact messages
+      to: process.env.EMAIL_TO,
       subject: `New contact message: ${subject}`,
       html: `
         <h1>New contact message</h1>
