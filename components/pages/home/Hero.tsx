@@ -8,7 +8,7 @@ export function Hero() {
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <h1 className="mb-6">
-            <TextGenerateEffect words="Next-Auth Template" />
+            <TextGenerateEffect words="Next Template" />
           </h1>
           <p className="text-lg leading-8 text-muted-foreground">
             Powerful authentication solution with Next Auth, Shadcn UI,

@@ -2,7 +2,7 @@ import { Separator } from '@/components/ui/separator';
 import { notFound } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/authOptions';
-import { AccountActions } from '@/components/pages/user/settings/AccountActions';
+import { AccountActions } from '@/components/pages/user/settings/account-actions-form';
 
 export default async function SettingsAccountPage() {
   const session = await getServerSession(authOptions);

@@ -3,7 +3,7 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
 import { Separator } from '@/components/ui/separator';
-import { SidebarNav } from '@/components/pages/user/settings/sidebar-nav';
+import { SidebarNav } from '@/components/ui/sidebar-nav';
 
 import { Session } from 'next-auth';
 import { authOptions } from '@/lib/authOptions';

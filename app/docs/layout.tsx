@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { Separator } from '@/components/ui/separator';
-import { SidebarNav } from '@/components/pages/user/settings/sidebar-nav';
+import { SidebarNav } from '@/components/ui/sidebar-nav';
 
 export const metadata: Metadata = {
   title: 'Next Template - Documentation',
