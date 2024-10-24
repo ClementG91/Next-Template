@@ -20,6 +20,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { submitContactForm } from '@/actions/contact';
 
 interface ContactFormProps {
   selectedTopic: string;
@@ -51,18 +52,10 @@ export function ContactForm({ selectedTopic }: ContactFormProps) {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch('/api/contact', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
+      const result = await submitContactForm(data);
 
-      const result = await response.json();
-
-      if (!response.ok) {
-        if (response.status === 429) {
+      if (!result.success) {
+        if (result.message.includes('Please wait')) {
           setCooldown(60);
           const timer = setInterval(() => {
             setCooldown((prev) => {
