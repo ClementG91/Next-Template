@@ -20,6 +20,7 @@ import {
   deleteAccountSchema,
   DeleteAccountFormData,
 } from '@/lib/schemas/user/delete-account';
+import { deleteAccount, downloadAccountData } from '@/actions/account';
 
 export function AccountActions() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -45,23 +46,15 @@ export function AccountActions() {
     });
 
     try {
-      const response = await fetch('/api/user/delete', {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (response.ok) {
+      const result = await deleteAccount(data);
+      if (result.success) {
         toast({
           title: 'Account deleted',
-          description: 'Your account has been successfully deleted.',
+          description: result.message,
         });
         await signOut({ callbackUrl: '/' });
       } else {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to delete account');
+        throw new Error(result.message || 'Failed to delete account');
       }
     } catch (error) {
       console.error('Error deleting account:', error);
@@ -89,19 +82,14 @@ export function AccountActions() {
     });
 
     try {
-      const response = await fetch('/api/user/data', {
-        headers: {
-          'Content-Type': 'text/plain',
-        },
-      });
-      if (response.ok) {
-        const text = await response.text();
-        const blob = new Blob([text], { type: 'text/plain' });
+      const result = await downloadAccountData();
+      if (result.success && result.data) {
+        const blob = new Blob([result.data], { type: result.contentType });
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.style.display = 'none';
         a.href = url;
-        a.download = 'user_data.txt';
+        a.download = result.filename;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
@@ -110,7 +98,7 @@ export function AccountActions() {
           description: 'Your account data has been downloaded successfully.',
         });
       } else {
-        throw new Error('Failed to download data');
+        throw new Error(result.message || 'Failed to download data');
       }
     } catch (error) {
       console.error('Error downloading data:', error);

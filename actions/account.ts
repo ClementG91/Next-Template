@@ -1,15 +1,47 @@
-import { NextResponse } from 'next/server';
+'use server';
+
 import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/authOptions';
+import {
+  deleteAccountSchema,
+  DeleteAccountFormData,
+} from '@/lib/schemas/user/delete-account';
 
 const prisma = new PrismaClient();
 
-export async function GET() {
+export async function deleteAccount(formData: DeleteAccountFormData) {
   const session = await getServerSession(authOptions);
 
   if (!session || !session.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return { success: false, message: 'Unauthorized' };
+  }
+
+  try {
+    const validatedData = deleteAccountSchema.parse(formData);
+
+    if (validatedData.confirmText !== 'DELETE') {
+      return { success: false, message: 'Invalid confirmation' };
+    }
+
+    await prisma.user.delete({
+      where: { id: session.user.id },
+    });
+
+    return { success: true, message: 'Account deleted successfully' };
+  } catch (error) {
+    console.error('Error deleting user account:', error);
+    return { success: false, message: 'Error deleting account' };
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+export async function downloadAccountData() {
+  const session = await getServerSession(authOptions);
+
+  if (!session || !session.user) {
+    return { success: false, message: 'Unauthorized' };
   }
 
   try {
@@ -26,7 +58,7 @@ export async function GET() {
     });
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      return { success: false, message: 'User not found' };
     }
 
     // Convert user data to a formatted text string
@@ -55,19 +87,15 @@ For any questions or requests regarding your personal data, please contact our D
 
     const fullText = `Your Personal Data:\r\n\r\n${userDataText}\r\n\r\n${gdprInfo}`;
 
-    return new NextResponse(fullText, {
-      status: 200,
-      headers: {
-        'Content-Type': 'text/plain; charset=utf-8',
-        'Content-Disposition': 'attachment; filename=user_data.txt',
-      },
-    });
+    return {
+      success: true,
+      data: fullText,
+      filename: 'user_data.txt',
+      contentType: 'text/plain; charset=utf-8',
+    };
   } catch (error) {
     console.error('Error retrieving user data:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return { success: false, message: 'Internal server error' };
   } finally {
     await prisma.$disconnect();
   }

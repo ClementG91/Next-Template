@@ -2,8 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { useState } from 'react';
-
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -15,120 +14,65 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { toast } from '@/hooks/use-toast';
-import { User } from '@prisma/client';
-import React from 'react';
-import { Session } from 'next-auth';
+import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   profileFormSchema,
   ProfileFormValues,
 } from '@/lib/schemas/user/profile';
+import { updateProfile, getProfile } from '@/actions/profile';
 
-type UpdateUserResponse = {
-  user?: User;
-  error?: string;
-};
-
-async function updatedUser(
-  userid: string,
-  userData: Partial<User>
-): Promise<UpdateUserResponse> {
-  try {
-    const response = await fetch('/api/user/update', {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(userData),
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to update user');
-    }
-
-    const updatedUser = await response.json();
-    return { user: updatedUser };
-  } catch {
-    return { error: 'Failed to update user due to an unexpected error.' };
-  }
-}
-
-export { updatedUser };
-
-type ProfileFormProps = {
-  session: Session;
-};
-
-export function ProfileForm({ session }: ProfileFormProps) {
-  const [isLoading, setIsLoading] = React.useState(true);
-  const [user, setUser] = React.useState<Partial<ProfileFormValues>>({
+export function ProfileForm() {
+  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<Partial<ProfileFormValues>>({
     name: '',
     email: '',
     image: '',
   });
-  const defaultValues: Partial<ProfileFormValues> = user;
+  const { toast } = useToast();
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
-    defaultValues,
+    defaultValues: user,
   });
   const { setValue } = form;
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  async function getMe(): Promise<Partial<ProfileFormValues> | null> {
-    try {
-      const response = await fetch('/api/user/me');
-      if (!response.ok) {
-        throw new Error('Failed to fetch user data');
-      }
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching user data:', error);
-      return null;
-    }
-  }
-
-  React.useEffect(() => {
-    getMe().then((response) => {
-      if (response === null) {
+  useEffect(() => {
+    getProfile().then((response) => {
+      if (!response.success) {
         toast({
           title: 'Error',
-          description: "You're not logged in.",
+          description: response.message,
           variant: 'destructive',
         });
         return;
       }
-      setUser(response as Partial<ProfileFormValues>);
-      // Update form values with fetched user data
-      Object.keys(response as Partial<ProfileFormValues>).forEach((key) => {
-        setValue(
-          key as keyof ProfileFormValues,
-          response[key as keyof ProfileFormValues] as string
-        );
-      });
+      if (response.user) {
+        setUser(response.user as Partial<ProfileFormValues>);
+        // Update form values with fetched user data
+        Object.keys(response.user).forEach((key) => {
+          if (key in profileFormSchema.shape) {
+            setValue(
+              key as keyof ProfileFormValues,
+              response.user[key as keyof ProfileFormValues] as string
+            );
+          }
+        });
+      }
       setIsLoading(false);
     });
-  }, [setValue]);
+  }, [setValue, toast]);
 
   async function onSubmit(data: ProfileFormValues) {
-    if (!session || !session.user.id) {
-      toast({
-        title: 'Error',
-        description: 'You are not logged in.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
-      const response = await updatedUser(session.user.id, data);
-      if (response.error) {
+      const response = await updateProfile(data);
+      if (!response.success) {
         toast({
           title: 'Error',
-          description: response.error,
+          description: response.message,
           variant: 'destructive',
         });
       } else {
@@ -137,7 +81,9 @@ export function ProfileForm({ session }: ProfileFormProps) {
           description: 'Your profile has been successfully updated.',
           variant: 'default',
         });
-        setUser(response.user as Partial<ProfileFormValues>);
+        if (response.user) {
+          setUser(response.user as Partial<ProfileFormValues>);
+        }
       }
     } catch {
       toast({
@@ -151,112 +97,96 @@ export function ProfileForm({ session }: ProfileFormProps) {
   }
 
   return (
-    <>
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="space-y-8"
-          aria-label="profile-form-title"
-        >
-          <h1 id="profile-form-title" className="sr-only">
-            Profile Form
-          </h1>
-          {/* Fields */}
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel htmlFor="name">Name</FormLabel>
+              <FormControl>
+                {isLoading ? (
+                  <Skeleton className="h-10 w-full rounded-md" />
+                ) : (
+                  <Input {...field} id="name" />
+                )}
+              </FormControl>
+              <FormDescription>
+                It can be your real name or a pseudonym.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel htmlFor="name">Name</FormLabel>
-                <FormControl>
-                  {isLoading ? (
-                    <Skeleton className="h-10 w-full rounded-md" />
-                  ) : (
-                    <Input {...field} id="name" />
-                  )}
-                </FormControl>
-                <FormDescription>
-                  It can be your real name or a pseudonym.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                {isLoading ? (
+                  <Skeleton className="h-10 w-full rounded-md" />
+                ) : (
+                  <Input {...field} />
+                )}
+              </FormControl>
+              <FormDescription>This is your public email.</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  {isLoading ? (
-                    <Skeleton className="h-10 w-full rounded-md" />
-                  ) : (
-                    <Input placeholder={defaultValues.email} {...field} />
-                  )}
-                </FormControl>
-                <FormDescription>This is your public email.</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="image"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Profile Picture</FormLabel>
-                <FormControl>
-                  <div className="flex flex-col gap-4">
-                    <div className="flex items-center gap-4">
-                      <Avatar className="h-24 w-24">
-                        <AvatarImage
-                          src={
-                            field.value
-                              ? `/api/proxy?url=${encodeURIComponent(
-                                  field.value
-                                )}`
-                              : undefined
-                          }
-                          alt="Profile Picture"
-                        />
-                        <AvatarFallback>
-                          {user.name?.[0] || 'NT'}
-                        </AvatarFallback>
-                      </Avatar>
-                    </div>
-                    <Input
-                      className="max-w-md"
-                      placeholder="Image URL"
-                      value={field.value ?? ''}
-                      onChange={(e) => field.onChange(e.target.value)}
-                      disabled={isSubmitting}
-                    />
+        <FormField
+          control={form.control}
+          name="image"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Profile Picture</FormLabel>
+              <FormControl>
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-center gap-4">
+                    <Avatar className="h-24 w-24">
+                      <AvatarImage
+                        src={
+                          field.value
+                            ? `/api/proxy?url=${encodeURIComponent(
+                                field.value
+                              )}`
+                            : undefined
+                        }
+                        alt="Profile Picture"
+                      />
+                      <AvatarFallback>{user.name?.[0] || 'NT'}</AvatarFallback>
+                    </Avatar>
                   </div>
-                </FormControl>
-                <FormDescription>
-                  This is your profile picture. Please enter the URL of an
-                  image.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                  <Input
+                    className="max-w-md"
+                    placeholder="Image URL"
+                    {...field}
+                    value={field.value ?? ''}
+                    disabled={isSubmitting}
+                  />
+                </div>
+              </FormControl>
+              <FormDescription>
+                This is your profile picture. Please enter the URL of an image.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-          <div className="flex justify-between items-center">
-            <Button
-              type="submit"
-              className="text-white"
-              disabled={isSubmitting || isLoading}
-            >
-              {isSubmitting ? 'Updating...' : 'Update Profile'}
-            </Button>
-          </div>
-        </form>
-      </Form>
-    </>
+        <Button
+          type="submit"
+          className="text-white"
+          disabled={isSubmitting || isLoading}
+        >
+          {isSubmitting ? 'Updating...' : 'Update Profile'}
+        </Button>
+      </form>
+    </Form>
   );
 }
