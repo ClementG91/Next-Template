@@ -89,6 +89,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser to see the r
 ## Project Structure
 
 - `app/`: Contains application routes and page components (Next.js 13+ App Router).
+- `actions/`: Contains server actions that handle business logic and data fetching, replacing traditional API routes for improved security and performance.
 - `components/`: Reusable React components, including UI components and layout elements.
 - `lib/`: Utility functions and configurations (e.g., nodemailer setup).
 - `prisma/`: Prisma schema and migrations.

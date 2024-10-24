@@ -140,8 +140,9 @@ export const Documentation: FC = () => {
               <li>
                 <code>EMAIL_SERVER_HOST</code>, <code>EMAIL_SERVER_PORT</code>,{' '}
                 <code>EMAIL_SERVER_USER</code>,{' '}
-                <code>EMAIL_SERVER_PASSWORD</code>, <code>EMAIL_FROM</code>:
-                Your SMTP server configuration for sending emails
+                <code>EMAIL_SERVER_PASSWORD</code>, <code>EMAIL_FROM</code>,{' '}
+                <code>EMAIL_TO</code>: Your SMTP server configuration for
+                sending emails
               </li>
             </ul>
           </li>
