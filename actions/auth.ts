@@ -1,36 +1,24 @@
-import { NextResponse } from 'next/server';
+'use server';
+
 import { PrismaClient, Role } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import { transporter } from '@/lib/nodemailer';
 import crypto from 'crypto';
-import { signUpSchema } from '@/lib/schemas/auth/sign-up';
+import { signUpSchema, SignUpFormValues } from '@/lib/schemas/auth/sign-up';
 
 const prisma = new PrismaClient();
 
-export async function POST(request: Request) {
+export async function signUp(formData: SignUpFormValues) {
   try {
-    const body = await request.json();
-
-    // Validate request body
-    const result = signUpSchema.safeParse(body);
-    if (!result.success) {
-      return NextResponse.json(
-        {
-          message: 'Invalid input',
-          errors: result.error.flatten().fieldErrors,
-        },
-        { status: 400 }
-      );
-    }
-
-    const { name, email, password } = result.data;
+    const validatedData = signUpSchema.parse(formData);
+    const { name, email, password } = validatedData;
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
-      return NextResponse.json(
-        { message: 'This email address is already in use' },
-        { status: 400 }
-      );
+      return {
+        success: false,
+        message: 'This email address is already in use',
+      };
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -55,7 +43,6 @@ export async function POST(request: Request) {
         `,
       });
 
-      // Create user only after successfully sending the email
       const newUser = await prisma.user.create({
         data: {
           name,
@@ -67,28 +54,23 @@ export async function POST(request: Request) {
         },
       });
 
-      return NextResponse.json(
-        {
-          message:
-            'User created successfully. Check your email for the verification code.',
-          userId: newUser.id,
-        },
-        { status: 201 }
-      );
+      return {
+        success: true,
+        message:
+          'User created successfully. Check your email for the verification code.',
+        userId: newUser.id,
+      };
     } catch (emailError) {
       console.error('Error sending verification email:', emailError);
-      return NextResponse.json(
-        {
-          message: 'Registration failed. Unable to send verification email.',
-        },
-        { status: 500 }
-      );
+      return {
+        success: false,
+        message: 'Registration failed. Unable to send verification email.',
+      };
     }
   } catch (error) {
     console.error('Error during registration:', error);
-    return NextResponse.json(
-      { message: 'An error occurred during registration' },
-      { status: 500 }
-    );
+    return { success: false, message: 'An error occurred during registration' };
+  } finally {
+    await prisma.$disconnect();
   }
 }

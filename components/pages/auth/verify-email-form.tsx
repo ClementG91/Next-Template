@@ -12,10 +12,11 @@ import {
   verifyEmailSchema,
   VerifyEmailFormValues,
 } from '@/lib/schemas/auth/verify-email';
+import { ResendVerificationFormValues } from '@/lib/schemas/auth/resend-verification';
 import {
-  resendVerificationSchema,
-  ResendVerificationFormValues,
-} from '@/lib/schemas/auth/resend-verification';
+  verifyEmail,
+  resendVerificationCode,
+} from '@/actions/email-verification';
 
 function VerifyEmailFormContent() {
   const [isLoading, setIsLoading] = useState(false);
@@ -53,22 +54,16 @@ function VerifyEmailFormContent() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/auth/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
+      const response = await verifyEmail(data);
 
-      const responseData = await response.json();
-
-      if (response.ok) {
+      if (response.success) {
         toast({
           title: 'Success',
-          description: 'Email verified successfully',
+          description: response.message,
         });
         router.push('/auth/signin');
       } else {
-        throw new Error(responseData.message || 'Verification failed');
+        throw new Error(response.message || 'Verification failed');
       }
     } catch (error) {
       toast({
@@ -82,7 +77,7 @@ function VerifyEmailFormContent() {
     }
   };
 
-  const resendVerificationCode = async () => {
+  const handleResendVerificationCode = async () => {
     if (!email) {
       toast({
         title: 'Error',
@@ -96,25 +91,16 @@ function VerifyEmailFormContent() {
 
     try {
       const resendData: ResendVerificationFormValues = { email };
-      const validatedData = resendVerificationSchema.parse(resendData);
+      const response = await resendVerificationCode(resendData);
 
-      const response = await fetch('/api/auth/resend-verification', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(validatedData),
-      });
-
-      const responseData = await response.json();
-
-      if (response.ok) {
+      if (response.success) {
         toast({
           title: 'Success',
-          description:
-            'A new verification code has been sent to your email address',
+          description: response.message,
         });
       } else {
         throw new Error(
-          responseData.message || 'Failed to send new verification code'
+          response.message || 'Failed to send new verification code'
         );
       }
     } catch (error) {
@@ -160,7 +146,7 @@ function VerifyEmailFormContent() {
         </Button>
       </form>
       <Button
-        onClick={resendVerificationCode}
+        onClick={handleResendVerificationCode}
         className="w-full text-white"
         variant="outline"
         disabled={isResending}

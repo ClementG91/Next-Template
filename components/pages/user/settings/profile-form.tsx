@@ -166,7 +166,7 @@ export function ProfileForm() {
                     className="max-w-md"
                     placeholder="Image URL"
                     {...field}
-                    value={field.value ?? ''}
+                    value={field.value ?? ''} // Assurez-vous que la valeur n'est jamais null ou undefined
                     disabled={isSubmitting}
                   />
                 </div>

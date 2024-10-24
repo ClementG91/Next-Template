@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { signUpSchema, SignUpFormValues } from '@/lib/schemas/auth/sign-up';
+import { signUp } from '@/actions/auth';
 
 export default function SignUpForm() {
   const router = useRouter();
@@ -26,24 +27,16 @@ export default function SignUpForm() {
   const onSubmit = async (data: SignUpFormValues) => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
+      const response = await signUp(data);
 
-      if (response.ok) {
+      if (response.success) {
         toast({
           title: 'Success',
-          description:
-            'Your account has been created successfully. Please check your email to confirm your account.',
+          description: response.message,
         });
         router.push('/auth/verify-email');
       } else {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.message || 'An error occurred during registration'
-        );
+        throw new Error(response.message);
       }
     } catch (error) {
       toast({
