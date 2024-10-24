@@ -2,7 +2,6 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import * as z from 'zod';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -22,25 +21,10 @@ import React from 'react';
 import { Session } from 'next-auth';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-
-const profileFormSchema = z.object({
-  name: z
-    .string()
-    .min(2, { message: 'Name must be at least 2 characters.' })
-    .max(30, { message: 'Name must not be longer than 30 characters.' })
-    .optional(),
-  email: z
-    .string()
-    .email({ message: 'Please enter a valid email.' })
-    .optional(),
-  image: z
-    .string()
-    .url({ message: 'Please enter a valid URL.' })
-    .optional()
-    .nullable(),
-});
-
-type ProfileFormValues = z.infer<typeof profileFormSchema>;
+import {
+  profileFormSchema,
+  ProfileFormValues,
+} from '@/lib/schemas/user/profile';
 
 type UpdateUserResponse = {
   user?: User;

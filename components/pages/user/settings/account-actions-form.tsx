@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -17,14 +16,10 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { signOut } from 'next-auth/react';
-
-const deleteAccountSchema = z.object({
-  confirmText: z.literal('DELETE', {
-    errorMap: () => ({ message: "Please type 'DELETE' to confirm" }),
-  }),
-});
-
-type DeleteAccountFormData = z.infer<typeof deleteAccountSchema>;
+import {
+  deleteAccountSchema,
+  DeleteAccountFormData,
+} from '@/lib/schemas/user/delete-account';
 
 export function AccountActions() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -41,7 +36,7 @@ export function AccountActions() {
     resolver: zodResolver(deleteAccountSchema),
   });
 
-  const onDeleteAccount = async () => {
+  const onDeleteAccount = async (data: DeleteAccountFormData) => {
     if (isDeleting) return;
     setIsDeleting(true);
     toast({
@@ -55,6 +50,7 @@ export function AccountActions() {
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify(data),
       });
 
       if (response.ok) {
@@ -64,13 +60,17 @@ export function AccountActions() {
         });
         await signOut({ callbackUrl: '/' });
       } else {
-        throw new Error('Failed to delete account');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete account');
       }
     } catch (error) {
       console.error('Error deleting account:', error);
       toast({
         title: 'Error',
-        description: 'Failed to delete account. Please try again.',
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Failed to delete account. Please try again.',
         variant: 'destructive',
       });
     } finally {
