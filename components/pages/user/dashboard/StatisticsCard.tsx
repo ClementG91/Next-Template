@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
+import { getUserCount } from '@/actions/user-stats';
 
 export const StatisticsCard: React.FC = () => {
   const [userCount, setUserCount] = useState<number | null>(null);
@@ -19,12 +20,8 @@ export const StatisticsCard: React.FC = () => {
   useEffect(() => {
     const fetchUserCount = async () => {
       try {
-        const response = await fetch('/api/users/count');
-        if (!response.ok) {
-          throw new Error('Error while retrieving the number of users');
-        }
-        const data = await response.json();
-        setUserCount(data.count);
+        const count = await getUserCount();
+        setUserCount(count);
       } catch (err) {
         setError('Unable to load statistics');
         console.error(err);

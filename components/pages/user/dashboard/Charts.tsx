@@ -17,16 +17,12 @@ import { ChartCard } from '@/components/pages/user/dashboard/ChartCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
+import { getUserGrowth, getProviderData } from '@/actions/user-stats';
 
 // Define interfaces for chart data
 interface ChartData {
   name: string;
   value: number;
-}
-
-interface GrowthData {
-  date: string;
-  count: number;
 }
 
 // Define colors for the pie chart
@@ -48,29 +44,20 @@ export const Charts: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch data from API endpoints
-        const [growthResponse, providerResponse] = await Promise.all([
-          fetch('/api/users/growth'),
-          fetch('/api/users/providers'),
+        const [growthData, providerData] = await Promise.all([
+          getUserGrowth(),
+          getProviderData(),
         ]);
 
-        if (!growthResponse.ok || !providerResponse.ok) {
-          throw new Error('Error while retrieving data');
-        }
-
-        const growthData: GrowthData[] = await growthResponse.json();
-        const providerData: ChartData[] = await providerResponse.json();
-
-        // Process and set user growth data
         setUserGrowth(
           growthData
             .map((item) => ({
-              name: item.date, // Store the full date here
+              name: item.date,
               value: item.count,
             }))
             .sort(
               (a, b) => new Date(a.name).getTime() - new Date(b.name).getTime()
-            ) // Sort data by date
+            )
         );
 
         setProviderData(providerData);
