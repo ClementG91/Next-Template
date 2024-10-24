@@ -2,12 +2,27 @@ import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { transporter } from '@/lib/nodemailer';
 import crypto from 'crypto';
+import { resendVerificationSchema } from '@/lib/schemas/auth/resend-verification';
 
 const prisma = new PrismaClient();
 
 export async function POST(request: Request) {
   try {
-    const { email } = await request.json();
+    const body = await request.json();
+
+    // Validate request body
+    const result = resendVerificationSchema.safeParse(body);
+    if (!result.success) {
+      return NextResponse.json(
+        {
+          message: 'Invalid input',
+          errors: result.error.flatten().fieldErrors,
+        },
+        { status: 400 }
+      );
+    }
+
+    const { email } = result.data;
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {

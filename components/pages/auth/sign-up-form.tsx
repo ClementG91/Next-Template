@@ -3,26 +3,12 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
-
-const schema = z
-  .object({
-    name: z.string().min(2, 'Name must contain at least 2 characters'),
-    email: z.string().email('Invalid email'),
-    password: z.string().min(6, 'Password must be at least 6 characters'),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: 'Passwords do not match',
-    path: ['confirmPassword'],
-  });
-
-type FormData = z.infer<typeof schema>;
+import { signUpSchema, SignUpFormValues } from '@/lib/schemas/auth/sign-up';
 
 export default function SignUpForm() {
   const router = useRouter();
@@ -33,11 +19,11 @@ export default function SignUpForm() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<FormData>({
-    resolver: zodResolver(schema),
+  } = useForm<SignUpFormValues>({
+    resolver: zodResolver(signUpSchema),
   });
 
-  const onSubmit = async (data: FormData) => {
+  const onSubmit = async (data: SignUpFormValues) => {
     setIsLoading(true);
     try {
       const response = await fetch('/api/auth/signup', {
@@ -50,7 +36,7 @@ export default function SignUpForm() {
         toast({
           title: 'Success',
           description:
-            'Your account has been created successfully. Please check your email to verify your account.',
+            'Your account has been created successfully. Please check your email to confirm your account.',
         });
         router.push('/auth/verify-email');
       } else {

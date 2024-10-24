@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { transporter } from '@/lib/nodemailer';
-import { contactFormSchema } from '@/lib/schemas/contact';
+import { contactFormSchema } from '@/lib/schemas/contact/contact';
 
 const cooldowns = new Map<string, number>();
 

@@ -3,17 +3,32 @@ import { PrismaClient, Role } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import { transporter } from '@/lib/nodemailer';
 import crypto from 'crypto';
+import { signUpSchema } from '@/lib/schemas/auth/sign-up';
 
 const prisma = new PrismaClient();
 
 export async function POST(request: Request) {
   try {
-    const { name, email, password } = await request.json();
+    const body = await request.json();
+
+    // Validate request body
+    const result = signUpSchema.safeParse(body);
+    if (!result.success) {
+      return NextResponse.json(
+        {
+          message: 'Invalid input',
+          errors: result.error.flatten().fieldErrors,
+        },
+        { status: 400 }
+      );
+    }
+
+    const { name, email, password } = result.data;
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
       return NextResponse.json(
-        { message: 'This email is already in use' },
+        { message: 'This email address is already in use' },
         { status: 400 }
       );
     }
@@ -40,7 +55,7 @@ export async function POST(request: Request) {
         `,
       });
 
-      // Create the user only after successfully sending the email
+      // Create user only after successfully sending the email
       const newUser = await prisma.user.create({
         data: {
           name,

@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -11,13 +10,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { FaDiscord, FaGoogle, FaGithub } from 'react-icons/fa';
-
-const schema = z.object({
-  email: z.string().email('Invalid email'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-});
-
-type FormData = z.infer<typeof schema>;
+import { signInSchema, SignInFormValues } from '@/lib/schemas/auth/sign-in';
 
 export default function SignInForm() {
   const router = useRouter();
@@ -28,11 +21,11 @@ export default function SignInForm() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<FormData>({
-    resolver: zodResolver(schema),
+  } = useForm<SignInFormValues>({
+    resolver: zodResolver(signInSchema),
   });
 
-  const onSubmit = async (data: FormData) => {
+  const onSubmit = async (data: SignInFormValues) => {
     setIsLoading(true);
     const result = await signIn('credentials', {
       redirect: false,

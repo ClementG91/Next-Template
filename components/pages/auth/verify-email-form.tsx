@@ -3,21 +3,19 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useSearchParams } from 'next/navigation';
-
-const schema = z.object({
-  email: z.string().email('Adresse e-mail invalide'),
-  code: z
-    .string()
-    .length(6, 'Le code de vérification doit contenir 6 caractères'),
-});
-
-type FormData = z.infer<typeof schema>;
+import {
+  verifyEmailSchema,
+  VerifyEmailFormValues,
+} from '@/lib/schemas/auth/verify-email';
+import {
+  resendVerificationSchema,
+  ResendVerificationFormValues,
+} from '@/lib/schemas/auth/resend-verification';
 
 function VerifyEmailFormContent() {
   const [isLoading, setIsLoading] = useState(false);
@@ -32,24 +30,26 @@ function VerifyEmailFormContent() {
     formState: { errors },
     setValue,
     watch,
-  } = useForm<FormData>({
-    resolver: zodResolver(schema),
+  } = useForm<VerifyEmailFormValues>({
+    resolver: zodResolver(verifyEmailSchema),
   });
 
   const email = watch('email');
 
   useEffect(() => {
-    const emailParam = searchParams.get('email');
-    const codeParam = searchParams.get('code');
-    if (emailParam) {
-      setValue('email', emailParam);
-    }
-    if (codeParam) {
-      setValue('code', codeParam);
+    if (searchParams) {
+      const emailParam = searchParams.get('email');
+      const codeParam = searchParams.get('code');
+      if (emailParam) {
+        setValue('email', emailParam);
+      }
+      if (codeParam) {
+        setValue('code', codeParam);
+      }
     }
   }, [searchParams, setValue]);
 
-  const onSubmit = async (data: FormData) => {
+  const onSubmit = async (data: VerifyEmailFormValues) => {
     setIsLoading(true);
 
     try {
@@ -63,18 +63,18 @@ function VerifyEmailFormContent() {
 
       if (response.ok) {
         toast({
-          title: 'Succès',
-          description: 'E-mail vérifié avec succès',
+          title: 'Success',
+          description: 'Email verified successfully',
         });
         router.push('/auth/signin');
       } else {
-        throw new Error(responseData.message || 'La vérification a échoué');
+        throw new Error(responseData.message || 'Verification failed');
       }
     } catch (error) {
       toast({
-        title: 'Erreur',
+        title: 'Error',
         description:
-          error instanceof Error ? error.message : 'La vérification a échoué',
+          error instanceof Error ? error.message : 'Verification failed',
         variant: 'destructive',
       });
     } finally {
@@ -85,8 +85,8 @@ function VerifyEmailFormContent() {
   const resendVerificationCode = async () => {
     if (!email) {
       toast({
-        title: 'Erreur',
-        description: 'Veuillez entrer une adresse e-mail',
+        title: 'Error',
+        description: 'Please enter an email address',
         variant: 'destructive',
       });
       return;
@@ -95,32 +95,35 @@ function VerifyEmailFormContent() {
     setIsResending(true);
 
     try {
+      const resendData: ResendVerificationFormValues = { email };
+      const validatedData = resendVerificationSchema.parse(resendData);
+
       const response = await fetch('/api/auth/resend-verification', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify(validatedData),
       });
 
       const responseData = await response.json();
 
       if (response.ok) {
         toast({
-          title: 'Succès',
+          title: 'Success',
           description:
-            'Un nouveau code de vérification a été envoyé à votre adresse e-mail',
+            'A new verification code has been sent to your email address',
         });
       } else {
         throw new Error(
-          responseData.message || "Échec de l'envoi du nouveau code"
+          responseData.message || 'Failed to send new verification code'
         );
       }
     } catch (error) {
       toast({
-        title: 'Erreur',
+        title: 'Error',
         description:
           error instanceof Error
             ? error.message
-            : "Échec de l'envoi du nouveau code",
+            : 'Failed to send new verification code',
         variant: 'destructive',
       });
     } finally {
@@ -130,10 +133,10 @@ function VerifyEmailFormContent() {
 
   return (
     <div className="space-y-6 w-full max-w-md">
-      <h1 className="text-2xl font-bold text-center">Vérifiez votre e-mail</h1>
+      <h1 className="text-2xl font-bold text-center">Verify Your Email</h1>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
-          <Input type="email" placeholder="E-mail" {...register('email')} />
+          <Input type="email" placeholder="Email" {...register('email')} />
           {errors.email && (
             <p className="text-red-500 text-sm">{errors.email.message}</p>
           )}
@@ -141,7 +144,7 @@ function VerifyEmailFormContent() {
         <div>
           <Input
             type="text"
-            placeholder="Code de vérification"
+            placeholder="Verification Code"
             {...register('code')}
           />
           {errors.code && (
@@ -153,7 +156,7 @@ function VerifyEmailFormContent() {
           className="w-full text-white"
           disabled={isLoading}
         >
-          {isLoading ? 'Vérification en cours...' : "Vérifier l'e-mail"}
+          {isLoading ? 'Verifying...' : 'Verify Email'}
         </Button>
       </form>
       <Button
@@ -162,7 +165,7 @@ function VerifyEmailFormContent() {
         variant="outline"
         disabled={isResending}
       >
-        {isResending ? 'Envoi en cours...' : 'Renvoyer le code de vérification'}
+        {isResending ? 'Sending...' : 'Resend Verification Code'}
       </Button>
     </div>
   );
@@ -171,7 +174,7 @@ function VerifyEmailFormContent() {
 export default function VerifyEmailForm() {
   return (
     <div className="flex justify-center items-center min-h-screen">
-      <Suspense fallback={<div>Chargement...</div>}>
+      <Suspense fallback={<div>Loading...</div>}>
         <VerifyEmailFormContent />
       </Suspense>
     </div>
