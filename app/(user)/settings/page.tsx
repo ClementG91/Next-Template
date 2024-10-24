@@ -1,14 +1,13 @@
 import { Separator } from '@/components/ui/separator';
 import { ProfileForm } from '@/components/pages/user/settings/profile-form';
 import { notFound } from 'next/navigation';
-import { getServerSession, Session } from 'next-auth';
+import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/authOptions';
 
 export default async function SettingsProfilePage() {
-  const session = (await getServerSession(authOptions)) as Session & {
-    isOAuth: boolean;
-  };
+  const session = await getServerSession(authOptions);
   if (!session) return notFound();
+
   return (
     <div className="space-y-6">
       <div>
@@ -18,7 +17,7 @@ export default async function SettingsProfilePage() {
         </p>
       </div>
       <Separator />
-      <ProfileForm session={session} />
+      <ProfileForm />
     </div>
   );
 }
