@@ -39,30 +39,33 @@ export default function SignInForm() {
   );
 
   useEffect(() => {
-    const error = searchParams.get('error');
-    const provider = searchParams.get('provider');
+    if (typeof window !== 'undefined') {
+      const error = searchParams.get('error');
+      const provider = searchParams.get('provider');
 
-    if (error) {
-      let errorMessage = '';
-      switch (error) {
-        case 'existing_password_account':
-          errorMessage =
-            'You already have an account with a password. Please sign in using your email and password.';
-          break;
-        case 'existing_provider':
-          errorMessage = `You are already registered with ${provider}. Please sign in using that method.`;
-          break;
-        default:
-          errorMessage = 'An authentication error occurred. Please try again.';
+      if (error) {
+        let errorMessage = '';
+        switch (error) {
+          case 'existing_password_account':
+            errorMessage =
+              'You already have an account with a password. Please sign in using your email and password.';
+            break;
+          case 'existing_provider':
+            errorMessage = `You are already registered with ${provider}. Please sign in using that method.`;
+            break;
+          default:
+            errorMessage =
+              'An authentication error occurred. Please try again.';
+        }
+        setTimeout(() => {
+          showErrorToast(errorMessage);
+          // Remove error from URL
+          const newUrl = new URL(window.location.href);
+          newUrl.searchParams.delete('error');
+          newUrl.searchParams.delete('provider');
+          window.history.replaceState({}, '', newUrl.toString());
+        }, 100);
       }
-      setTimeout(() => {
-        showErrorToast(errorMessage);
-        // Supprimer l'erreur de l'URL
-        const newUrl = new URL(window.location.href);
-        newUrl.searchParams.delete('error');
-        newUrl.searchParams.delete('provider');
-        window.history.replaceState({}, '', newUrl.toString());
-      }, 100);
     }
   }, [searchParams, showErrorToast]);
 
