@@ -57,7 +57,10 @@ export default function SignInForm() {
             errorMessage =
               'An authentication error occurred. Please try again.';
         }
-        showErrorToast(errorMessage);
+
+        setTimeout(() => {
+          showErrorToast(errorMessage);
+        }, 0);
 
         // Remove error from URL
         searchParams.delete('error');
