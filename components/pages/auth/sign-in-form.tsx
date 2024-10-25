@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { signIn } from 'next-auth/react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -16,7 +16,6 @@ export default function SignInForm() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
 
   const {
@@ -28,11 +27,13 @@ export default function SignInForm() {
   });
 
   useEffect(() => {
+    // Move the useSearchParams hook inside useEffect
+    const searchParams = new URLSearchParams(window.location.search);
     const errorParam = searchParams.get('error');
     if (errorParam) {
       setError(errorParam);
     }
-  }, [searchParams]);
+  }, []);
 
   useEffect(() => {
     if (error) {
