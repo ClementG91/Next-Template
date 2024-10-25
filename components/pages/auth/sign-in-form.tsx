@@ -91,7 +91,8 @@ export default function SignInForm() {
           variant: 'destructive',
         });
       } else if (result?.url) {
-        router.push(result.url);
+        // Utilisez window.location.href pour une redirection complète
+        window.location.href = result.url;
       }
     } catch (error) {
       console.error('Provider sign in error:', error);

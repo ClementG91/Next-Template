@@ -78,10 +78,12 @@ export const authOptions: NextAuthOptions = {
           existingUser.accounts.length > 0
         ) {
           const existingProvider = existingUser.accounts[0].provider;
-          console.log(`User already registered with ${existingProvider}`);
-          return `/auth/signin?error=${encodeURIComponent(
-            `You are already registered with ${existingProvider}. Please sign in using that method.`
-          )}`;
+          if (existingProvider !== account.provider) {
+            console.log(`User already registered with ${existingProvider}`);
+            return `/auth/signin?error=${encodeURIComponent(
+              `You are already registered with ${existingProvider}. Please sign in using that method.`
+            )}`;
+          }
         }
       }
       return true;
