@@ -72,17 +72,16 @@ export const authOptions: NextAuthOptions = {
           include: { accounts: true },
         });
 
-        if (
-          existingUser &&
-          existingUser.accounts &&
-          existingUser.accounts.length > 0
-        ) {
-          const existingProvider = existingUser.accounts[0].provider;
-          if (existingProvider !== account.provider) {
-            console.log(`User already registered with ${existingProvider}`);
-            return `/auth/signin?error=${encodeURIComponent(
-              `You are already registered with ${existingProvider}. Please sign in using that method.`
-            )}`;
+        if (existingUser) {
+          if (existingUser.password) {
+            return '/auth/signin?error=existing_password_account';
+          }
+
+          if (existingUser.accounts && existingUser.accounts.length > 0) {
+            const existingProvider = existingUser.accounts[0].provider;
+            if (existingProvider !== account.provider) {
+              return `/auth/signin?error=existing_provider&provider=${existingProvider}`;
+            }
           }
         }
       }

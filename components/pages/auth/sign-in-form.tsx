@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -16,7 +16,7 @@ export default function SignInForm() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const searchParams = useSearchParams();
 
   const {
     register,
@@ -26,25 +26,45 @@ export default function SignInForm() {
     resolver: zodResolver(signInSchema),
   });
 
-  useEffect(() => {
-    // Move the useSearchParams hook inside useEffect
-    const searchParams = new URLSearchParams(window.location.search);
-    const errorParam = searchParams.get('error');
-    if (errorParam) {
-      setError(errorParam);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (error) {
+  const showErrorToast = useCallback(
+    (errorMessage: string) => {
       toast({
         title: 'Authentication Error',
-        description: error,
+        description: errorMessage,
         variant: 'destructive',
+        duration: 5000,
       });
-      setError(null); // Reset error after showing toast
+    },
+    [toast]
+  );
+
+  useEffect(() => {
+    const error = searchParams.get('error');
+    const provider = searchParams.get('provider');
+
+    if (error) {
+      let errorMessage = '';
+      switch (error) {
+        case 'existing_password_account':
+          errorMessage =
+            'You already have an account with a password. Please sign in using your email and password.';
+          break;
+        case 'existing_provider':
+          errorMessage = `You are already registered with ${provider}. Please sign in using that method.`;
+          break;
+        default:
+          errorMessage = 'An authentication error occurred. Please try again.';
+      }
+      setTimeout(() => {
+        showErrorToast(errorMessage);
+        // Supprimer l'erreur de l'URL
+        const newUrl = new URL(window.location.href);
+        newUrl.searchParams.delete('error');
+        newUrl.searchParams.delete('provider');
+        window.history.replaceState({}, '', newUrl.toString());
+      }, 100);
     }
-  }, [error, toast]);
+  }, [searchParams, showErrorToast]);
 
   const onSubmit = async (data: SignInFormValues) => {
     setIsLoading(true);
@@ -56,61 +76,32 @@ export default function SignInForm() {
       });
 
       if (result?.error) {
-        toast({
-          title: 'Error',
-          description: result.error,
-          variant: 'destructive',
-        });
-      } else {
+        let errorMessage = 'An authentication error occurred.';
+        switch (result.error) {
+          case 'CredentialsSignin':
+            errorMessage = 'Invalid email or password. Please try again.';
+            break;
+        }
+        showErrorToast(errorMessage);
+      } else if (result?.ok) {
         router.push('/dashboard');
       }
     } catch (error) {
       console.error('Sign in error:', error);
-      toast({
-        title: 'Error',
-        description: 'An unexpected error occurred',
-        variant: 'destructive',
-      });
+      showErrorToast('An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleProviderSignIn = async (provider: string) => {
-    setIsLoading(true);
-    try {
-      const result = await signIn(provider, {
-        redirect: false,
-        callbackUrl: '/dashboard',
-      });
-      console.log('Provider sign in result:', result);
-      if (result?.error) {
-        toast({
-          title: 'Authentication Error',
-          description: result.error,
-          variant: 'destructive',
-        });
-      } else if (result?.url) {
-        // Utilisez window.location.href pour une redirection complète
-        window.location.href = result.url;
-      }
-    } catch (error) {
-      console.error('Provider sign in error:', error);
-      toast({
-        title: 'Error',
-        description: 'An unexpected error occurred',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
-    }
+  const handleProviderSignIn = (provider: string) => {
+    signIn(provider, { callbackUrl: '/dashboard' });
   };
 
   return (
     <div className="flex justify-center items-center min-h-screen">
       <div className="space-y-6 w-full max-w-md">
         <h1 className="text-2xl font-bold text-center">Sign In</h1>
-        {error && <p className="text-red-500 text-center">{error}</p>}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
             <Input type="email" placeholder="Email" {...register('email')} />
