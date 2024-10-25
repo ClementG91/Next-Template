@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { signIn } from 'next-auth/react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -16,7 +16,6 @@ export default function SignInForm() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const searchParams = useSearchParams();
 
   const {
     register,
@@ -39,7 +38,8 @@ export default function SignInForm() {
   );
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    const handleAuthError = () => {
+      const searchParams = new URLSearchParams(window.location.search);
       const error = searchParams.get('error');
       const provider = searchParams.get('provider');
 
@@ -57,17 +57,20 @@ export default function SignInForm() {
             errorMessage =
               'An authentication error occurred. Please try again.';
         }
-        setTimeout(() => {
-          showErrorToast(errorMessage);
-          // Remove error from URL
-          const newUrl = new URL(window.location.href);
-          newUrl.searchParams.delete('error');
-          newUrl.searchParams.delete('provider');
-          window.history.replaceState({}, '', newUrl.toString());
-        }, 100);
+        showErrorToast(errorMessage);
+
+        // Remove error from URL
+        searchParams.delete('error');
+        searchParams.delete('provider');
+        const newUrl = `${window.location.pathname}${
+          searchParams.toString() ? `?${searchParams.toString()}` : ''
+        }`;
+        router.replace(newUrl);
       }
-    }
-  }, [searchParams, showErrorToast]);
+    };
+
+    handleAuthError();
+  }, [router, showErrorToast]);
 
   const onSubmit = async (data: SignInFormValues) => {
     setIsLoading(true);
