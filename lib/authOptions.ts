@@ -65,6 +65,27 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
+    async signIn({ user, account }) {
+      if (account && account.provider !== 'credentials' && user.email) {
+        const existingUser = await prisma.user.findUnique({
+          where: { email: user.email },
+          include: { accounts: true },
+        });
+
+        if (
+          existingUser &&
+          existingUser.accounts &&
+          existingUser.accounts.length > 0
+        ) {
+          const existingProvider = existingUser.accounts[0].provider;
+          console.log(`User already registered with ${existingProvider}`);
+          return `/auth/signin?error=${encodeURIComponent(
+            `You are already registered with ${existingProvider}. Please sign in using that method.`
+          )}`;
+        }
+      }
+      return true;
+    },
     async jwt({ token, user }) {
       if (user) {
         token.role = user.role;
@@ -85,5 +106,4 @@ export const authOptions: NextAuthOptions = {
   },
   secret: process.env.NEXTAUTH_SECRET,
   session: { strategy: 'jwt' },
-  // debug: process.env.NODE_ENV === 'production', // TODO: Remove this before deploying
 };

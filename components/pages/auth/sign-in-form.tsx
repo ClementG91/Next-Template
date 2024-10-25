@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -16,6 +16,8 @@ export default function SignInForm() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const searchParams = useSearchParams();
+  const [error, setError] = useState<string | null>(null);
 
   const {
     register,
@@ -25,30 +27,88 @@ export default function SignInForm() {
     resolver: zodResolver(signInSchema),
   });
 
-  const onSubmit = async (data: SignInFormValues) => {
-    setIsLoading(true);
-    const result = await signIn('credentials', {
-      redirect: false,
-      email: data.email,
-      password: data.password,
-    });
+  useEffect(() => {
+    const errorParam = searchParams.get('error');
+    if (errorParam) {
+      setError(errorParam);
+    }
+  }, [searchParams]);
 
-    if (result?.error) {
+  useEffect(() => {
+    if (error) {
       toast({
-        title: 'Error',
-        description: 'Incorrect email or password',
+        title: 'Authentication Error',
+        description: error,
         variant: 'destructive',
       });
-    } else {
-      router.push('/dashboard');
+      setError(null); // Reset error after showing toast
     }
-    setIsLoading(false);
+  }, [error, toast]);
+
+  const onSubmit = async (data: SignInFormValues) => {
+    setIsLoading(true);
+    try {
+      const result = await signIn('credentials', {
+        redirect: false,
+        email: data.email,
+        password: data.password,
+      });
+
+      if (result?.error) {
+        toast({
+          title: 'Error',
+          description: result.error,
+          variant: 'destructive',
+        });
+      } else {
+        router.push('/dashboard');
+      }
+    } catch (error) {
+      console.error('Sign in error:', error);
+      toast({
+        title: 'Error',
+        description: 'An unexpected error occurred',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleProviderSignIn = async (provider: string) => {
+    setIsLoading(true);
+    try {
+      const result = await signIn(provider, {
+        redirect: false,
+        callbackUrl: '/dashboard',
+      });
+      console.log('Provider sign in result:', result);
+      if (result?.error) {
+        toast({
+          title: 'Authentication Error',
+          description: result.error,
+          variant: 'destructive',
+        });
+      } else if (result?.url) {
+        router.push(result.url);
+      }
+    } catch (error) {
+      console.error('Provider sign in error:', error);
+      toast({
+        title: 'Error',
+        description: 'An unexpected error occurred',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="flex justify-center items-center min-h-screen">
       <div className="space-y-6 w-full max-w-md">
         <h1 className="text-2xl font-bold text-center">Sign In</h1>
+        {error && <p className="text-red-500 text-center">{error}</p>}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
             <Input type="email" placeholder="Email" {...register('email')} />
@@ -76,23 +136,26 @@ export default function SignInForm() {
         </form>
         <div className="flex justify-between items-center">
           <Button
-            onClick={() => signIn('discord', { callbackUrl: '/dashboard' })}
+            onClick={() => handleProviderSignIn('discord')}
             variant="outline"
             className="flex-1 mr-2"
+            disabled={isLoading}
           >
             <FaDiscord className="mr-2 h-4 w-4" /> Discord
           </Button>
           <Button
-            onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
+            onClick={() => handleProviderSignIn('google')}
             variant="outline"
             className="flex-1 mx-2"
+            disabled={isLoading}
           >
             <FaGoogle className="mr-2 h-4 w-4" /> Google
           </Button>
           <Button
-            onClick={() => signIn('github', { callbackUrl: '/dashboard' })}
+            onClick={() => handleProviderSignIn('github')}
             variant="outline"
             className="flex-1 ml-2"
+            disabled={isLoading}
           >
             <FaGithub className="mr-2 h-4 w-4" /> GitHub
           </Button>
