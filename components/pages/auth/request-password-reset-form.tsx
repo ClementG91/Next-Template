@@ -72,11 +72,7 @@ export default function RequestPasswordResetForm() {
   }, [isCooldown]);
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 p-6">
-      <h2 className="text-xl font-semibold text-center">Reset Your Password</h2>
-      <p className="text-foreground/60 text-center">
-        Please enter your email address to receive a password reset link.
-      </p>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div>
         <Input type="email" placeholder="Email" {...register('email')} />
         {errors.email && (
