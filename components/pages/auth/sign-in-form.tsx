@@ -11,11 +11,14 @@ import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { FaDiscord, FaGoogle, FaGithub } from 'react-icons/fa';
 import { signInSchema, SignInFormValues } from '@/lib/schemas/auth/sign-in';
+import RequestPasswordResetForm from '@/components/pages/auth/request-password-reset-form'; // Importer le formulaire de réinitialisation
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 export default function SignInForm() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false); // État pour contrôler le dialogue
 
   const {
     register,
@@ -168,6 +171,22 @@ export default function SignInForm() {
             Sign Up
           </Link>
         </p>
+        <p className="text-center">
+          <Button
+            onClick={() => setIsDialogOpen(true)}
+            className="text-blue-500 hover:underline"
+            variant="link"
+          >
+            Forgot your password?
+          </Button>
+        </p>
+
+        {/* Dialogue pour la réinitialisation de mot de passe */}
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent>
+            <RequestPasswordResetForm />
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

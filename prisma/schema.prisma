@@ -21,22 +21,23 @@ enum Role {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  emailVerified DateTime?
-  verificationToken String?
-  image         String?
-  password      String?   
-  accounts      Account[]
-  sessions      Session[]
-  Authenticator Authenticator[]
-  verificationCode String?
+  id                    String    @id @default(cuid())
+  name                  String?
+  email                 String    @unique
+  emailVerified         DateTime?
+  verificationToken     String?
+  image                 String?
+  password              String?   
+  accounts              Account[]
+  sessions              Session[]
+  Authenticator         Authenticator[]
+  verificationCode      String?
   verificationCodeExpires DateTime?
-  role           Role      @default(USER)
- 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  role                  Role      @default(USER)
+  resetToken            String?   @unique
+  resetTokenExpires     DateTime?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 }
 
 model Account {

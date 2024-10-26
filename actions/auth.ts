@@ -5,6 +5,8 @@ import bcrypt from 'bcrypt';
 import { transporter } from '@/lib/nodemailer';
 import crypto from 'crypto';
 import { signUpSchema, SignUpFormValues } from '@/lib/schemas/auth/sign-up';
+import { RequestPasswordResetFormValues } from '@/lib/schemas/auth/request-password-reset';
+import { ResetPasswordFormValues } from '@/lib/schemas/auth/reset-password';
 
 const prisma = new PrismaClient();
 
@@ -73,4 +75,84 @@ export async function signUp(formData: SignUpFormValues) {
   } finally {
     await prisma.$disconnect();
   }
+}
+
+export async function requestPasswordReset(
+  formData: RequestPasswordResetFormValues
+) {
+  const { email } = formData;
+
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) {
+    return {
+      success: true,
+      message:
+        'If this email is registered, you will receive a password reset link.',
+    };
+  }
+  if (!user.password) {
+    return {
+      success: false,
+      message:
+        'Password reset is not available for accounts created with a provider.',
+    };
+  }
+
+  let resetToken;
+  let existingUser;
+
+  do {
+    resetToken = crypto.randomBytes(32).toString('hex');
+    existingUser = await prisma.user.findUnique({
+      where: { resetToken },
+    });
+  } while (existingUser);
+
+  const resetTokenExpires = new Date(Date.now() + 3600000); // 1 heure
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      resetToken,
+      resetTokenExpires,
+    },
+  });
+
+  const resetLink = `${process.env.NEXT_PUBLIC_BASE_URL}/auth/reset-password?token=${resetToken}`;
+
+  await transporter.sendMail({
+    from: process.env.EMAIL_FROM,
+    to: email,
+    subject: 'Password Reset Request',
+    html: `<p>Click <a href="${resetLink}">here</a> to reset your password.</p>`,
+  });
+
+  return { success: true, message: 'Password reset email sent' };
+}
+
+export async function resetPassword(
+  token: string,
+  formData: ResetPasswordFormValues
+) {
+  const { password } = formData;
+
+  const user = await prisma.user.findUnique({
+    where: { resetToken: token },
+  });
+
+  if (!user || !user.resetTokenExpires || user.resetTokenExpires < new Date()) {
+    return { success: false, message: 'Invalid or expired token' };
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      password: hashedPassword,
+      resetToken: null,
+      resetTokenExpires: null,
+    },
+  });
+
+  return { success: true, message: 'Password has been reset successfully' };
 }
