@@ -22,10 +22,18 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/auth/signin', request.url));
     }
 
-    // Add role-based access control if needed
-    // if (pathname.startsWith('/admin') && token?.role !== 'ADMIN') {
-    //   return NextResponse.redirect(new URL('/dashboard', request.url));
-    // }
+    // Add role-based access control for admin routes
+    if (pathname.startsWith('/admin') && token?.role !== 'ADMIN') {
+      return NextResponse.redirect(new URL('/dashboard', request.url));
+    }
+
+    // Ajouter une vérification pour les routes API admin
+    if (pathname.startsWith('/api/admin') && token?.role !== 'ADMIN') {
+      return new NextResponse(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 403,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
 
     return NextResponse.next();
   } catch (error) {
@@ -40,6 +48,6 @@ export const config = {
     '/dashboard/:path*',
     '/settings/:path*',
     '/api/protected/:path*',
-    // '/admin/:path*', // Uncomment if you have admin routes
+    '/admin/:path*',
   ],
 };

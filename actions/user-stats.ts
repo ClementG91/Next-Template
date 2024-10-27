@@ -90,3 +90,96 @@ export async function getProviderData() {
     await prisma.$disconnect();
   }
 }
+
+export async function getAdminStats() {
+  const session = await getServerSession(authOptions);
+
+  if (!session || session.user.role !== 'ADMIN') {
+    throw new Error('Unauthorized');
+  }
+
+  try {
+    const now = new Date();
+    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const yesterday = new Date(now.setDate(now.getDate() - 1));
+
+    const [totalUsers, activeSessions, securityStats, monthlyStats] =
+      await Promise.all([
+        // Total users count
+        prisma.user.count(),
+
+        // Active sessions count (not expired)
+        prisma.session.count({
+          where: {
+            expires: {
+              gt: new Date(),
+            },
+          },
+        }),
+
+        // Security related stats
+        prisma.user.aggregate({
+          _count: {
+            _all: true,
+            verificationToken: true,
+            resetToken: true,
+          },
+          where: {
+            OR: [
+              {
+                verificationToken: { not: null },
+                verificationCodeExpires: { gt: yesterday },
+              },
+              {
+                resetToken: { not: null },
+                resetTokenExpires: { gt: yesterday },
+              },
+            ],
+          },
+        }),
+
+        // Monthly growth stats
+        prisma.user.aggregate({
+          _count: {
+            _all: true,
+          },
+          where: {
+            createdAt: {
+              gte: firstDayOfMonth,
+            },
+          },
+        }),
+      ]);
+
+    // Calculate percentages and trends
+    const activeSessionsPercentage = (
+      (activeSessions / totalUsers) *
+      100
+    ).toFixed(1);
+
+    return {
+      totalUsers,
+      activeSessions: {
+        count: activeSessions,
+        percentage: `${activeSessionsPercentage}%`,
+      },
+      securityAlerts: {
+        total: securityStats._count._all,
+        pendingVerifications: securityStats._count.verificationToken,
+        pendingResets: securityStats._count.resetToken,
+      },
+      userGrowth: {
+        thisMonth: monthlyStats._count._all,
+        percentage:
+          totalUsers > 0
+            ? ((monthlyStats._count._all / totalUsers) * 100).toFixed(1) + '%'
+            : '0%',
+      },
+    };
+  } catch (error) {
+    console.error('Error fetching admin stats:', error);
+    throw new Error('Failed to fetch admin statistics');
+  } finally {
+    await prisma.$disconnect();
+  }
+}
