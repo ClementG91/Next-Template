@@ -21,6 +21,7 @@ import {
   Settings,
   LogOut,
   ChevronDown,
+  ShieldAlert,
 } from 'lucide-react';
 import Logo from '@/components/Logo';
 import { useEffect, useState } from 'react';
@@ -109,6 +110,14 @@ const Navbar = () => {
                   Dashboard
                 </Link>
               </DropdownMenuItem>
+              {session.user.role === 'ADMIN' && (
+                <DropdownMenuItem asChild>
+                  <Link href="/admin" className="flex items-center">
+                    <ShieldAlert className="mr-2 h-4 w-4" />
+                    Admin
+                  </Link>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem asChild>
                 <Link href="/settings" className="flex items-center">
                   <Settings className="mr-2 h-4 w-4" />
