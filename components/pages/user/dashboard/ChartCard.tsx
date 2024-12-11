@@ -1,6 +1,12 @@
-import { ReactElement } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ResponsiveContainer } from 'recharts'
+import { ReactElement } from 'react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { ResponsiveContainer } from 'recharts';
 
 interface ChartCardProps {
   title: string;
@@ -8,7 +14,11 @@ interface ChartCardProps {
   children: ReactElement;
 }
 
-export const ChartCard: React.FC<ChartCardProps> = ({ title, description, children }) => (
+export const ChartCard: React.FC<ChartCardProps> = ({
+  title,
+  description,
+  children,
+}) => (
   <Card>
     <CardHeader>
       <CardTitle>{title}</CardTitle>
@@ -20,4 +30,4 @@ export const ChartCard: React.FC<ChartCardProps> = ({ title, description, childr
       </ResponsiveContainer>
     </CardContent>
   </Card>
-)
+);

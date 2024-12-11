@@ -19,8 +19,8 @@ This project is a Next.js application template with robust authentication, using
 
 ## Key Libraries
 
-- Next.js 14
-- React 18
+- Next.js 15
+- React 19
 - Next Auth
 - Prisma
 - Zod
@@ -38,6 +38,41 @@ This project is a Next.js application template with robust authentication, using
 - Node.js (version 14 or higher)
 - npm or yarn
 - PostgreSQL database (e.g., Neon)
+
+### Google OAuth
+
+1. **Create a Google Project:**
+   To set up Google authentication, you need to create a Google project on the [Google Cloud Console](https://console.cloud.google.com/).
+
+   Once your project is created, follow these steps:
+
+   - Go to the [Google Cloud Console](https://console.cloud.google.com/).
+   - Select your project or create a new one.
+   - In the navigation menu, choose "APIs & Services" > "Credentials."
+   - Click "Create Credentials" and select "OAuth client ID."
+   - Configure your client ID by providing the required information. Make sure to add the appropriate redirect URL (likely `http://localhost:3000/api/auth/callback/google` and `http://localhost:3000/dashboard` during development).
+   - Once your client ID is created, copy the values for `GOOGLE_CLIENT_SECRET` and `GOOGLE_CLIENT_ID` into your `.env` file.
+
+2. **Google API Permissions:**
+   You may also need to configure permissions for accessing the Google API.
+   To do this, navigate to the "Credentials" section of your Google Cloud project and set the necessary permissions.
+
+### GitHub OAuth
+
+1. **Create a GitHub OAuth Application:**
+   To configure GitHub authentication, you'll need to create a GitHub OAuth application.
+
+   Here's how to do it:
+
+   - Go to [GitHub Developer Settings](https://github.com/settings/developers).
+   - Under "OAuth Apps," click "New OAuth App."
+   - Configure your application by providing the required information, including the authorization callback URL (likely `http://localhost:3000/api/auth/callback/github` and `http://localhost:3000/dashboard` during development).
+   - Once your application is created, copy the values for `GITHUB_ID` and `GITHUB_SECRET` into your `.env` file.
+
+2. **Set Application Permissions:**
+   In the settings for your GitHub OAuth application, you can define the necessary access permissions for your application. Make sure to configure these permissions based on your application's requirements.
+
+After following these steps for Google and GitHub, you should have successfully configured OAuth authentication for your Next.js application. Don't forget to refer to Google's and GitHub's specific documentation guides for additional details if needed.
 
 ## Installation
 

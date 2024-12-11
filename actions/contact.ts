@@ -23,7 +23,7 @@ export async function submitContactForm(formData: ContactFormValues) {
   const { name, email, subject, message } = result.data;
 
   // Cooldown check
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const lastSubmission = cookieStore.get('lastContactSubmission');
   const now = Date.now();
   if (
