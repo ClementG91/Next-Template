@@ -57,7 +57,7 @@ const features = [
 export function Features() {
   return (
     <div>
-      <div className="flex justify-center">
+      <div className="flex justify-center pt-12">
         <FeaturesAnimated />
       </div>
       <div className="mx-auto max-w-7xl px-6 lg:px-8 antialiased">

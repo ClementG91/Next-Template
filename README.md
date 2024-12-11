@@ -1,4 +1,4 @@
-# Next.js Authentication Template
+# Next.js 15 Authentication Template
 
 This project is a Next.js application template with robust authentication, using Next Auth, Shadcn UI, Aceternity UI, Prisma, and PostgreSQL.
 
@@ -119,6 +119,12 @@ To start the development server:
 npm run dev
 ```
 
+For deploying on Vercel, use the following command to install dependencies with legacy peer dependencies:
+
+```
+npm install --legacy-peer-deps
+```
+
 Open [http://localhost:3000](http://localhost:3000) in your browser to see the result.
 
 ## Project Structure
@@ -138,7 +144,3 @@ This project is designed to be easily deployed on platforms like Vercel. Make su
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
-
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.

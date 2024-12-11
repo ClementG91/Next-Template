@@ -25,7 +25,7 @@ export function FeaturesAnimated() {
 
   return (
     <div
-      className="relative flex w-full max-w-[500px] items-center justify-center overflow-hidden p-10"
+      className="relative md:flex w-full max-w-[500px] items-center justify-center overflow-hidden p-10 hidden"
       ref={containerRef}
     >
       <div className="flex h-full w-full flex-col items-stretch justify-between gap-24 text-black">
