@@ -3,6 +3,7 @@
 import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/authOptions';
+import { UserGrowthData } from '@/types/prisma';
 
 const prisma = new PrismaClient();
 
@@ -48,7 +49,7 @@ export async function getUserGrowth() {
       LIMIT 13
     `;
 
-    return userGrowth.map(({ date, count }) => ({
+    return userGrowth.map(({ date, count }: UserGrowthData) => ({
       date: date.toISOString(),
       count,
     }));

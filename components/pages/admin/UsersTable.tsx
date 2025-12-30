@@ -30,6 +30,7 @@ import { MoreHorizontal, ArrowUpDown, Search } from 'lucide-react';
 import { getUsers, updateUserRole, deleteUser } from '@/actions/admin';
 import { useToast } from '@/hooks/use-toast';
 import { userSchema, User, Role } from '@/lib/schemas/admin/users';
+import { UserSearchResult } from '@/types/prisma';
 import {
   Dialog,
   DialogContent,
@@ -83,7 +84,7 @@ export default function UsersTable() {
         sortDirection,
         searchTerm: debouncedSearchTerm,
       });
-      const parsedUsers = users.map((user) => userSchema.parse(user));
+      const parsedUsers = users.map((user: UserSearchResult) => userSchema.parse(user));
       setUsers(parsedUsers);
       setTotalPages(Math.ceil(totalCount / pageSize));
     } catch (error) {

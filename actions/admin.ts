@@ -1,11 +1,12 @@
 'use server';
 
-import { PrismaClient, Prisma } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/authOptions';
 import { revalidatePath } from 'next/cache';
 import { ZodError } from 'zod';
 import { userSchema, User } from '@/lib/schemas/admin/users';
+import { UserSearchResult } from '@/types/prisma';
 
 const prisma = new PrismaClient();
 
@@ -34,7 +35,7 @@ export async function getUsers({
 
   try {
     const skip = (page - 1) * pageSize;
-    const where: Prisma.UserWhereInput = searchTerm
+    const where = searchTerm
       ? {
           OR: [
             { name: { contains: searchTerm, mode: 'insensitive' } },
@@ -60,7 +61,7 @@ export async function getUsers({
     ]);
 
     return {
-      users: users.map((user) => userSchema.parse(user)),
+      users: users.map((user: UserSearchResult) => userSchema.parse(user)),
       totalCount,
     };
   } catch (error) {
