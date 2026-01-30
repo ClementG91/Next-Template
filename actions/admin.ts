@@ -1,6 +1,6 @@
 'use server';
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/authOptions';
 import { revalidatePath } from 'next/cache';
@@ -35,11 +35,11 @@ export async function getUsers({
 
   try {
     const skip = (page - 1) * pageSize;
-    const where = searchTerm
+    const where: Prisma.UserWhereInput = searchTerm
       ? {
           OR: [
-            { name: { contains: searchTerm, mode: 'insensitive' } },
-            { email: { contains: searchTerm, mode: 'insensitive' } },
+            { name: { contains: searchTerm, mode: Prisma.QueryMode.insensitive } },
+            { email: { contains: searchTerm, mode: Prisma.QueryMode.insensitive } },
           ],
         }
       : {};
