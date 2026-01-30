@@ -18,6 +18,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
 import { getUserGrowth, getProviderData } from '@/actions/user-stats';
+import { UserGrowthResult } from '@/types/prisma';
 
 // Define interfaces for chart data
 interface ChartData {
@@ -51,12 +52,12 @@ export const Charts: React.FC = () => {
 
         setUserGrowth(
           growthData
-            .map((item) => ({
+            .map((item: UserGrowthResult): ChartData => ({
               name: item.date,
               value: item.count,
             }))
             .sort(
-              (a, b) => new Date(a.name).getTime() - new Date(b.name).getTime()
+              (a: ChartData, b: ChartData) => new Date(a.name).getTime() - new Date(b.name).getTime()
             )
         );
 

@@ -1,6 +1,7 @@
 'use server';
 
-import { PrismaClient, Role } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
+import { Role } from '@/types/prisma';
 import bcrypt from 'bcrypt';
 import { transporter } from '@/lib/nodemailer';
 import crypto from 'crypto';

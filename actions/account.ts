@@ -63,11 +63,12 @@ export async function downloadAccountData() {
 
     // Convert user data to a formatted text string
     const userDataText = Object.entries(user)
-      .map(([key, value]) => {
-        if (key === 'emailVerified' || key === 'createdAt') {
-          return `${key}: ${
-            value ? new Date(value).toLocaleString() : 'Not set'
-          }`;
+      .map(([key, value]): string => {
+        if ((key === 'emailVerified' || key === 'createdAt') && value instanceof Date) {
+          return `${key}: ${value.toLocaleString()}`;
+        }
+        if ((key === 'emailVerified' || key === 'createdAt') && !value) {
+          return `${key}: Not set`;
         }
         return `${key}: ${value || 'Not set'}`;
       })

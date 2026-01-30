@@ -6,6 +6,7 @@ import { authOptions } from '@/lib/authOptions';
 import { revalidatePath } from 'next/cache';
 import { ZodError } from 'zod';
 import { userSchema, User } from '@/lib/schemas/admin/users';
+import { UserSearchResult } from '@/types/prisma';
 
 const prisma = new PrismaClient();
 
@@ -37,8 +38,8 @@ export async function getUsers({
     const where: Prisma.UserWhereInput = searchTerm
       ? {
           OR: [
-            { name: { contains: searchTerm, mode: 'insensitive' } },
-            { email: { contains: searchTerm, mode: 'insensitive' } },
+            { name: { contains: searchTerm, mode: Prisma.QueryMode.insensitive } },
+            { email: { contains: searchTerm, mode: Prisma.QueryMode.insensitive } },
           ],
         }
       : {};
@@ -60,7 +61,7 @@ export async function getUsers({
     ]);
 
     return {
-      users: users.map((user) => userSchema.parse(user)),
+      users: users.map((user: UserSearchResult) => userSchema.parse(user)),
       totalCount,
     };
   } catch (error) {
